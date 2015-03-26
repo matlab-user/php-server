@@ -12,9 +12,9 @@
 
 	//$_POST['T'] = 'dev/funs';
 	//$_POST['T'] = 'dev/info';
-	//$_POST['I1'] = 's001';
+	//$_POST['I1'] = 'A1B0C4D0E0FF';
 	//$_POST['W'] = '<funs><f><id>12</id><n>wdh</n><r>fun_remark</r><p><n>p1</n><r>p1_remark</r><u>u1</u></p><p><n>p2</n></p></f><f><id>13</id><n>wdh2</n></f></funs>';
-	//$_POST['W'] = '<dev><n>dev_name</n><m>model</m><c>company</c></dev>';
+	//$_POST['W'] = '<dev><n>dev_name</n><m>model</m><c>company</c><tz>9</tz></dev>';
 
 	if( !( isset($_POST['W']) & isset($_POST['I1']) ) )
 		exit;
@@ -195,6 +195,7 @@ class dev_info {
 	public $n = '';
 	public $m = '';
 	public $c = '';
+	public $tz = 8;
 }
 
 function parse_save_dev_info( $data ) {
@@ -220,6 +221,10 @@ function parse_save_dev_info( $data ) {
 				$dev_info->c = $v->__toString();
 				break;
 				
+			case 'tz':
+				$dev_info->tz = intval( $v->__toString() );
+				break;
+				
 			default:
 				break;
 		}	
@@ -233,7 +238,10 @@ function parse_save_dev_info( $data ) {
 		$sql_str .= "model='".$dev_info->m."', ";
 	
 	if( !empty($dev_info->c) )
-		$sql_str .= "maker='".$dev_info->c."' ";
+		$sql_str .= "maker='".$dev_info->c."', ";
+	
+	if( !empty($dev_info->tz) )
+		$sql_str .= "timezone=".$dev_info->tz." ";
 	
 	$sql_str .= "WHERE guid1='".$_POST['I1']."'";
 	//echo $sql_str."\r\n";
