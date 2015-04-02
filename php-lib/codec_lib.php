@@ -16,7 +16,7 @@
 		foreach( $t_array as $v ) {
 		
 			if( $i==0 ) {
-				$T_int[0] = intval( $v );
+				$T_int[0] = floatval( $v );
 				$mid = $T_int[0];
 			}
 			else {
@@ -33,10 +33,10 @@
 					case '8':
 					case '9':
 					case '-':
-						$T_int[$i] = $mid + intval( $t_array[$i] );
+						$T_int[$i] = $mid + floatval( $t_array[$i] );
 						break;
 					default:
-						$mid = intval( $t_array[$i] );
+						$mid = floatval( $t_array[$i] );
 						$T_int[$i] = $mid;
 						break;
 				}
@@ -62,6 +62,7 @@
 		public $time = 0;
 		public $unit = '';
 		public $type = '';
+		public $g = '';
 	}
 	
 	// 解码 W 数据
@@ -136,6 +137,9 @@
 					break;
 				case 'd':
 					$res_d->type = substr( $token, 1 );		
+					break;
+				case 'g':
+					$res_d->g = substr( $token, 1 );
 					break;
 				default:
 					break;

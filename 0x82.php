@@ -5,7 +5,12 @@
 	// 此程序仅支持 key=value 形式的数据传输，即所有 value 须为可显示字符
 
 	require_once( "php-lib/codec_lib.php" );
-	
+/*	
+	$W = '[1982;(1,2.4,ucm,t-2,g1)(2,2.56,t1,g2)]'; 
+	$res = decode_W( $W );
+	var_dump( $res );
+	return;
+*/
 	$config = read_config( 'php-lib/config.cf' );
 	$mysql_user = $config->user;
 	$mysql_pass = $config->pass;

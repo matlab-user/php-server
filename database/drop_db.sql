@@ -1,0 +1,4 @@
+DROP DATABASE user_db;
+DROP DATABASE dev_db;
+DROP DATABASE cell_db;
+DROP DATABASE data_db;

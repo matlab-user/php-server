@@ -1,0 +1,27 @@
+<dev>
+	<n>dev_name</n>
+	<m>dev_model</m>
+	<c>maker</c>
+	<tz>timezone</tz>
+	<lo>lo</lo>
+	<la>la</la>
+	<h>height</h>
+	
+	<d>
+		<id>1</id>   				
+		<n>data1</n>				
+		<rem>data1_remark</rem>  		
+		<ty>8</ty>					
+		<unit>unit</unit>			
+		<st>0</st>					
+	</d>
+
+	<d>
+		<id>2</id>   				
+		<n>data2</n>				
+		<rem>data2_remark</rem>  		
+		<ty>8</ty>					
+		<unit>unit</unit>			
+		<st>1</st>					
+	</d>
+</dev>
