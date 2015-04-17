@@ -101,8 +101,8 @@
 					$token = strtok( "()" );
 				}
 				$i++;
-				//unset( $d_array );
-				$d_array = [];
+				unset( $d_array );
+				//$d_array = [];
 			}
 		}
 		
@@ -213,6 +213,7 @@
 		public $v = '';
 		public $i1 = '';
 		public $i2 = '';
+		public $id = '';
 		
 		Function show() {
 			foreach( $this as $key=>$v ) {
@@ -278,6 +279,9 @@
 					case 'TIME':
 						$res->time = $t2;
 						break;
+					case 'ID':
+						$res->id = $t2;
+						break;
 					default:
 						break;
 				}
@@ -300,6 +304,7 @@
 		public $pass = '';
 		public $upload_path = '';
 		public $domain = '';
+		public $timeout = 1000;				// 文件超时时长，单位：秒
 	}
 	
 	// 从文件中读取 mysql 数据库用户、密钥等配置信息
@@ -323,6 +328,10 @@
 						break;
 					case 'domain':
 						$res->domain = strtok( "= \r\n" );
+						break;
+					case 'timeout':
+						$mid_str = strtok( "= \r\n" );
+						$res->timeout = floatval( $mid_str );
 						break;
 					default:
 						break;

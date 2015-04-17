@@ -1,6 +1,6 @@
 <?php
 	//$str = 'this is a apple!';
-	require_once( "php-lib/codec_lib.php" );
+	require_once( dirname(__FILE__)."/php-lib/codec_lib.php" );
 	
 	$str = array( 255 );
 	$res = base64_encode( implode($str) );

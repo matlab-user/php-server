@@ -4,14 +4,14 @@
 	// 未处理数据中的 单位
 	// 此程序仅支持 key=value 形式的数据传输，即所有 value 须为可显示字符
 
-	require_once( "php-lib/codec_lib.php" );
+	require_once( dirname(__FILE__)."/php-lib/codec_lib.php" );
 /*	
 	$W = '[1982;(1,2.4,ucm,t-2,g1)(2,2.56,t1,g2)]'; 
 	$res = decode_W( $W );
 	var_dump( $res );
 	return;
 */
-	$config = read_config( 'php-lib/config.cf' );
+	$config = read_config( dirname(__FILE__).'/php-lib/config.cf' );
 	$mysql_user = $config->user;
 	$mysql_pass = $config->pass;
 	
@@ -59,15 +59,47 @@
 			$d = decode_W( $_POST['W'] );
 			if( $d!==false ) {
 				count_data_time( $t_int, $d );
-				show_W_obj( $d );
+				//show_W_obj( $d );
 				
 				foreach( $d as $v ) {
 					$dev_id = $v->dev_id;
 					foreach( $v->data as $value ) {
-						$query_str = "CALL save_val_data( '".$dev_id."',".$value->id.",".$value->value.",".$value->time." )";
-						//echo $query_str."\n";
+						//$query_str = "CALL user_db.save_val_data( '".$dev_id."',".$value->id.",".$value->value.",".$value->time." )";
+						$query_str = sprintf( "SELECT d_t, v_name, utid FROM data_db.dev_data_unit WHERE dev_id='%s' AND d_id=%s", $dev_id, $value->id );
+						error_log( $query_str."\r\n", 3, '/tmp/wang.log' );
 						$con = touch_mysql();
-						mysql_unbuffered_query( $query_str, $con );
+						$res = mysql_query( $query_str, $con );
+						if( !$res ) {
+							error_log( "mysql query results is empty!\r\n", 3, '/tmp/wang.log' );
+							mysql_close( $con );
+							exit;
+						}
+						$row = mysql_fetch_row( $res );
+						$dt = $row[0];
+						$vname = $row[1];
+						$utid = $row[2];
+						mysql_free_result( $res );
+						
+						$query_str = sprintf( "SELECT unit FROM data_db.unit_table WHERE id=%s", $utid );
+						if( !$res ) {
+							error_log( "mysql query results is empty!\r\n", 3, '/tmp/wang.log' );
+							mysql_close( $con );
+							exit;
+						}
+						$row = mysql_fetch_row( $res );
+						$unit = $row[0];
+						mysql_free_result( $res );
+						
+						if( $dt==0 ) {					// 积累数据
+							$query_str = sprintf( "INSERT INTO data_db.his_data ( dev_id, d_id, v_name, unit, value, time ) VALUES ( '%s', %s, '%s', '%s', %s, %f )", $dev_id, $value->id, $vname, $unit, $value->value, $value->time );
+							mysql_query( $query_str, $con );
+						}
+						else {
+							$query_str = sprintf( "INSERT INTO data_db.real_data ( dev_id, d_id, v_name, unit, value, time ) VALUES ( '%s', %s, '%s', '%s', %s, %f )", $dev_id, $value->id, $vname, $unit, $value->value, $value->time );
+							mysql_query( $query_str, $con );
+							$query_str = sprintf( "UPDATE data_db.real_data SET value=%s, v_name='%s', time=%f WHERE dev_id='%s' AND d_id=%s", $value->value, $vname, $value->time, $dev_id, $value->id );
+							mysql_query( $query_str, $con );							
+						}
 						mysql_close( $con );
 					}
 				}
@@ -90,7 +122,7 @@
 						$query_str = "CALL add_alarm( '".$dev_id."',".$value->id.",".$value->value.",".$value->time." )";
 						echo 'alarm: '.$query_str."\n";
 						$con = touch_mysql();
-						mysql_unbuffered_query( $query_str, $con );
+						mysql_query( $query_str, $con );
 						mysql_close( $con );
 					}
 				}
@@ -147,7 +179,7 @@
 			$con = touch_mysql();
 			$query_str = "CALL save_file( '".$dev_id."',".$value->id.",'".$file_path."',".$value->time." )";
 			echo $query_str."\n";
-			mysql_unbuffered_query( $query_str, $con );
+			mysql_query( $query_str, $con );
 			mysql_close( $con );
 			break;
 			
@@ -172,10 +204,12 @@
 		global $mysql_user, $mysql_pass;
 		
 		$con = mysql_connect( 'localhost', $mysql_user, $mysql_pass );
-		if( !$con )
+		if( !$con ) {
+			error_log( "mysql touch failed--".mysql_error()."\r\n", 3, '/tmp/wang.log' );
 			die( 'Could not connect: ' . mysql_error() );
-			
-		mysql_unbuffered_query( "SET NAMES 'utf8'", $con );
+		}
+		
+		mysql_query( "SET NAMES 'utf8'", $con );
 		mysql_select_db( 'user_db', $con );
 		return $con;
 	}	

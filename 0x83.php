@@ -3,18 +3,18 @@
 	// 未支持 I2 E C 参数
 	// 未处理数据中的 单位
 	// 此程序仅支持 key=value 形式的数据传输，即所有 value 须为可显示字符
-
-	require_once( "php-lib/codec_lib.php" );
 	
-	$config = read_config( 'php-lib/config.cf' );
+	require_once( dirname(__FILE__)."/php-lib/codec_lib.php" );
+	
+	$config = read_config( dirname(__FILE__).'/php-lib/config.cf' );
 	$mysql_user = $config->user;
 	$mysql_pass = $config->pass;
 
-	$_POST['T'] = 'dev/funs';
+	//$_POST['T'] = 'dev/funs';
 	//$_POST['T'] = 'dev/info';
 	//$_POST['T'] = 'file/image';
-	$_POST['I1'] = 'A1B0C4D0E0FF';
-	$_POST['W'] = '<funs><f><id>12</id><n>wdh</n><r>fun_remark</r><p><n>p1</n><r>p1_remark</r><u>u1</u></p><p><n>p2</n></p></f><f><id>13</id><n>wdh2</n></f></funs>';
+	//$_POST['I1'] = '0001';
+	//$_POST['W'] = '<funs><f><id>12</id><n>wdh</n><r>fun_remark</r><p><n>p1</n><r>p1_remark</r><u>u1</u></p><p><n>p2</n></p></f><f><id>13</id><n>wdh2</n></f></funs>';
 	//$_POST['W'] = '<dev><n>dev_name</n><m>model</m><c>company</c><tz>9</tz><logo></logo><d><id>1</id><n>s1</n><unit>w1</unit></d><d><id>2</id><n>s2</n><unit>w2</unit></d></dev>';
 
 	if( !( isset($_POST['W']) & isset($_POST['I1']) ) )
@@ -22,7 +22,9 @@
 	
 	if( !isset($_POST['T']) )
 		exit;
-
+	
+	$_POST['T'] = str_replace( "\r\n", "", $_POST['T'] );
+	
 	switch( $_POST['T'] ) {
 		case 'dev/funs':
 			$_POST['W'] = preproc_str( $_POST['W'] );
@@ -156,7 +158,7 @@ function add_fun( $one_f, $pnum ) {
 	if( empty($sql_con) )
 		return;
 	
-	echo $str."\r\n";
+	//echo $str."\r\n";
 	mysql_unbuffered_query( $str, $sql_con );
 	
 	mysql_close( $sql_con );
@@ -206,7 +208,7 @@ class dev_info {
 	public $lo = '';
 	public $la = '';
 	public $h = '';
-	public $data_info = []; 	
+	public $data_info = array(); 	
 }
 
 class dev_data_info {
@@ -324,13 +326,13 @@ function parse_save_dev_info( $data ) {
 	
 	if( !empty($dev_info->h) )
 		$sql_str .= "height='".$dev_info->h."', ";
-	
+/*	
 	$mstr = substr( $sql_str, -2 );
 	if( $mstr==', ' )
 		$sql_str = rtrim( $sql_str, ', ' );
-	
-	$sql_str .= " WHERE guid1='".$_POST['I1']."'";
-	
+*/	
+	$sql_str .= "state='running' WHERE guid1='".$_POST['I1']."'";
+
 	$sql_con = touch_mysql();
 	mysql_unbuffered_query( $sql_str, $sql_con );
 	mysql_close( $sql_con );

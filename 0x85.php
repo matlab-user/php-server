@@ -3,9 +3,9 @@
 	set_time_limit( 30 );
 
 	// 增加身份验证信息
-	
-	require_once( "php-lib/codec_lib.php" );
-	$config = read_config( 'php-lib/config.cf' );
+	require_once( dirname(__FILE__)."/php-lib/codec_lib.php" );
+
+	$config = read_config( dirname(__FILE__).'/php-lib/config.cf' );
 	$mysql_user = $config->user;
 	$mysql_pass = $config->pass;
 	

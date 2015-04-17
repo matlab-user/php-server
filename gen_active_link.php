@@ -1,11 +1,10 @@
 <?php
 
 	// 产生用户帐户激活链接
-
-	require_once( "php-lib/codec_lib.php" );
-	require_once( "php-lib/randcode.php" );
+	require_once( dirname(__FILE__)."/php-lib/codec_lib.php" );
+	require_once( dirname(__FILE__)."/php-lib/randcode.php" );
 	
-	$config = read_config( 'php-lib/config.cf' );
+	$config = read_config( dirname(__FILE__).'/php-lib/config.cf' );
 	$mysql_user = $config->user;
 	$mysql_pass = $config->pass;
 	

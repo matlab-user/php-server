@@ -1,4 +1,5 @@
 mysql_user=root
 mysql_passwd=blue
 upload_path=/tmp/
-domain=www.swaytech.biz
+domain=www.swaytech.biz:128
+timeout=1800
