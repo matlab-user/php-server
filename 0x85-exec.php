@@ -2,27 +2,31 @@
 
 	set_time_limit( 30 );
 	
-	require_once( "php-lib/codec_lib.php" );
-	$config = read_config( 'php-lib/config.cf' );
+	require_once( './php-lib/codec_lib.php' );
+	$config = read_config( './php-lib/config.cf' );
 	$mysql_user = $config->user;
 	$mysql_pass = $config->pass;
-	
+
 	$l_ip = $argv[1];
-	$l_port = $argv[2];
+	$l_port = intval($argv[2]);
 	
 	$sock = socket_create( AF_INET, SOCK_STREAM, 0 );
 	socket_set_option( $sock, SOL_SOCKET, SO_RCVTIMEO, array("sec"=>10, "usec"=>0 ) );
 	socket_set_option( $sock, SOL_SOCKET, SO_SNDTIMEO, array("sec"=>3, "usec"=>0 ) );
 	socket_set_option( $sock, SOL_SOCKET, SO_REUSEADDR, 1 );
 	
-	socket_bind( $sock, $l_ip, $l_port );       		// 绑定 ip、port
+	if( socket_bind( $sock, $l_ip, $l_port )===FALSE ) {       		// 绑定 ip、port
+		error_log( "0x85-exec socket_bind failed!\r\n", 3, '/tmp/php-server_0x85.log' );
+		exit;
+	}
+	error_log( '0x85-exec ip-'.$l_ip.'  port-'.$l_port."\r\n", 3, '/tmp/php-server_0x85.log' );
 	
 	socket_listen( $sock );      						 // 监听端口
 	$conn = socket_accept( $sock );  
 	if( $conn ) {
 		socket_getpeername ( $conn , $r_ip, $r_port );
-		echo "get client connection!\n"; 
-		echo 'peer_ip-'.$r_ip.'peer_port-'.$r_port."\n";
+		//echo "get client connection!\n"; 
+		//echo 'peer_ip-'.$r_ip.'peer_port-'.$r_port."\n";
 
 		$dev_send = '';
 		while( 1 ) {			// void gen TIME_WAIT
@@ -36,7 +40,7 @@
 				$I1 = get_guid1( $res );
 				$con = touch_mysql();
 				$query_str = "UPDATE dev_db.dev_table SET l_ip='".$l_ip."', l_port=".$l_port.", d_ip='".$r_ip."', d_port=".$r_port." WHERE guid1='".$I1."'";
-				error_log( $query_str."\r\n", 3, '/tmp/php-server.log' );
+				error_log( $query_str."\r\n", 3, '/tmp/php-server_0x85.log' );
 				mysql_unbuffered_query( $query_str, $con );
 				mysql_close( $con );
 				break;			

@@ -1,6 +1,6 @@
-% d_id - 行向量，参数的 id 号
-% value - 对应d_id参数的数值
-% t - 对应value的采集时间
+% d_id - 参数的 id 号, 行向量
+% value - 对应d_id参数的数值,行向量
+% t - 对应value的采集时间， 行向量
 % 3个输入参数必须具有相同的列数
 function [ encode_str, encode_time ] = data_encode( dev_guid1, d_id, value, t )
     encode_str = '';

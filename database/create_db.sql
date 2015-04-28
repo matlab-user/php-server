@@ -227,7 +227,7 @@ MAIN:BEGIN
 	SET @md5_passwd = '';
 	SET @st = '';
 	
-	SELECT @n:=name, @md5_passwd:=passwd, @st:=state FROM user_table WHERE name=uname;
+	SELECT name, passwd, state INTO @n, @md5_passwd, @st FROM user_table WHERE name=uname LIMIT 1;
 	
 	IF FOUND_ROWS()<= 0 THEN
 		SET uname = "NO";
@@ -332,13 +332,14 @@ DROP PROCEDURE IF EXISTS add_fun;
 CREATE PROCEDURE add_fun( IN gid1 VARCHAR(32) CHARACTER SET utf8, IN op_id BIGINT, IN op_name VARCHAR(60) CHARACTER SET utf8, IN op_remark VARCHAR(60) CHARACTER SET utf8, IN m CHAR(1), IN in_pnum INT )
 F8:BEGIN
 
-	SELECT guid1 FROM dev_db.dev_table WHERE guid1=gid1;
-	
+	SET @g1 = '';
+	SELECT guid1 INTO @g1 FROM dev_db.dev_table WHERE guid1=gid1;
 	IF FOUND_ROWS()<= 0 THEN
 		LEAVE F8;
 	END IF;
 	
-	SELECT fun_id FROM dev_db.dev_fun WHERE dev_id=gid1 AND fun_id=op_id;
+	SET @f_id = '';
+	SELECT fun_id INTO @f_id FROM dev_db.dev_fun WHERE dev_id=gid1 AND fun_id=op_id;
 	IF FOUND_ROWS()<=0 THEN
 		INSERT INTO dev_db.dev_fun (dev_id, fun_id, fun_name, remark, m, p_num) VALUES ( gid1, op_id, op_name, op_remark, m, in_pnum );
 	ELSE
@@ -361,9 +362,8 @@ DROP PROCEDURE IF EXISTS add_fun_p;
 */
 CREATE PROCEDURE add_fun_p( IN gid1 VARCHAR(32) CHARACTER SET utf8, IN op_id BIGINT, IN p_name VARCHAR(60) CHARACTER SET utf8, IN p_remark VARCHAR(60) CHARACTER SET utf8, IN pindex INT, IN unit VARCHAR(60) CHARACTER SET utf8 )
 F9:BEGIN
-
-	SELECT guid1 FROM dev_db.dev_table WHERE guid1=gid1;
-	
+	SET @g2 = '';
+	SELECT guid1 INTO @g1 FROM dev_db.dev_table WHERE guid1=gid1;
 	IF FOUND_ROWS()<= 0 THEN
 		LEAVE F9;
 	END IF;
@@ -394,17 +394,17 @@ END F9
 
 DROP PROCEDURE IF EXISTS save_val_data;
 /*	
-	gid1 - 设备16进制字符形式的标识
+	gid1 - 设备标识
 */
 CREATE PROCEDURE save_val_data( IN gid1 VARCHAR(32) CHARACTER SET utf8, IN did INT, IN val DOUBLE, IN t DOUBLE )
 F11:BEGIN
 
-	SELECT @amass:=d_t, @st:=s_t, @vname:=v_name, @utid:=utid FROM data_db.dev_data_unit WHERE dev_id=gid1 AND d_id=did;
+	SELECT d_t, s_t, v_name, utid INTO @amass, @st, @vname, @utid FROM data_db.dev_data_unit WHERE dev_id=gid1 AND d_id=did LIMIT 1;
 	IF FOUND_ROWS()<= 0 THEN
 		LEAVE F11;
 	END IF;
 	
-	SELECT @my_unit:=unit FROM data_db.unit_table WHERE id=@utid;
+	SELECT unit INTO @my_unit FROM data_db.unit_table WHERE id=@utid LIMIT 1;
 	IF FOUND_ROWS()<= 0 THEN
 		LEAVE F11;
 	END IF;
@@ -423,7 +423,7 @@ F11:BEGIN
 	
 	IF @amass=99 THEN
 		IF @st>0 THEN
-			SELECT @now:=unix_timestamp();
+			SELECT unix_timestamp() INTO @now;
 			DELETE FROM data_db.his_data WHERE dev_id=gid1 AND d_id=did AND (@now-time)>=@st*3600 AND unit!=3;
 		END IF;
 					
@@ -439,13 +439,12 @@ DROP PROCEDURE IF EXISTS save_bin_data;
 */
 CREATE PROCEDURE save_bin_data( IN gid1 VARCHAR(32) CHARACTER SET utf8, IN did INT, IN bind VARBINARY(200), IN t DOUBLE )
 F12:BEGIN
-
-	SELECT @amass:=d_t, @st:=s_t, @vname:=v_name, @utid:=utid FROM data_db.dev_data_unit WHERE dev_id=gid1 AND d_id=did;
+	SELECT d_t, s_t, v_name, utid INTO @amass, @st, @vname, @utid FROM data_db.dev_data_unit WHERE dev_id=gid1 AND d_id=did LIMIT 1;
 	IF FOUND_ROWS()<= 0 THEN
 		LEAVE F12;
 	END IF;
 	
-	SELECT @my_unit:=unit FROM data_db.unit_table WHERE id=@utid;
+	SELECT unit INTO @my_unit FROM data_db.unit_table WHERE id=@utid;
 	IF FOUND_ROWS()<= 0 THEN
 		LEAVE F12;
 	END IF;
@@ -464,7 +463,7 @@ F12:BEGIN
 	
 	IF @amass=99 THEN
 		IF @st>0 THEN
-			SELECT @now:=unix_timestamp();
+			SELECT unix_timestamp() INTO @now;
 			DELETE FROM data_db.his_data WHERE dev_id=gid1 AND d_id=did AND (@now-time)>=@st*3600 AND unit!=3;
 		END IF;
 		
@@ -472,6 +471,80 @@ F12:BEGIN
 	END IF;
 
 END F12
+|
+
+/*	
+	gid1 - 设备标识
+	根据数据单位，存储数据
+	单位为 bin 时，val为类似 0x4156... 的字符串
+	单位为 utf8 时，直接为字符串
+*/
+DROP PROCEDURE IF EXISTS save_data;
+CREATE PROCEDURE save_data( IN gid1 VARCHAR(32) CHARACTER SET utf8, IN did INT, IN val VARBINARY(200), IN t DOUBLE )
+F10:BEGIN
+
+	SELECT d_t, s_t, v_name, utid INTO @amass, @st, @vname, @utid FROM data_db.dev_data_unit WHERE dev_id=gid1 AND d_id=did LIMIT 1;
+	IF FOUND_ROWS()<= 0 THEN
+		LEAVE F10;
+	END IF;
+	
+	SELECT unit INTO @my_unit FROM data_db.unit_table WHERE id=@utid LIMIT 1;
+	IF FOUND_ROWS()<= 0 THEN
+		LEAVE F10;
+	END IF;
+	
+	IF @my_unit='utf8' THEN
+		IF @amass=1 THEN
+			UPDATE data_db.real_data SET bin_d=val, v_name=@vname, time=t WHERE dev_id=gid1 AND d_id=did;
+			IF ROW_COUNT() > 0 THEN
+				LEAVE F10;
+			END IF;
+			INSERT INTO data_db.real_data ( dev_id, d_id, v_name, unit, bin_d, time ) VALUES ( gid1, did, @vname, @my_unit, val, t );
+		END IF;
+		
+		IF @amass=0 THEN
+			INSERT INTO data_db.his_data ( dev_id, d_id, v_name, unit, bin_d, time ) VALUES ( gid1, did, @vname, @my_unit, val, t );
+		END IF;
+		LEAVE F10;
+	END IF;
+	
+	IF @my_unit='bin' THEN
+		IF @amass=1 THEN
+			UPDATE data_db.real_data SET bin_d=val, v_name=@vname, time=t WHERE dev_id=gid1 AND d_id=did;
+			IF ROW_COUNT() > 0 THEN
+				LEAVE F10;
+			END IF;
+			INSERT INTO data_db.real_data ( dev_id, d_id, v_name, unit, bin_d, time ) VALUES ( gid1, did, @vname, @my_unit, val, t );
+		END IF;
+		
+		IF @amass=0 THEN
+			INSERT INTO data_db.his_data ( dev_id, d_id, v_name, unit, bin_d, time ) VALUES ( gid1, did, @vname, @my_unit, val, t );
+		END IF;
+		LEAVE F10;
+	END IF;
+	
+	IF @amass=1 THEN
+		UPDATE data_db.real_data SET value=val, v_name=@vname, time=t WHERE dev_id=gid1 AND d_id=did;
+		IF ROW_COUNT() > 0 THEN
+			LEAVE F10;
+		END IF;
+		INSERT INTO data_db.real_data ( dev_id, d_id, v_name, unit, value, time ) VALUES ( gid1, did, @vname, @my_unit, val, t );
+	END IF;
+	
+	IF @amass=0 THEN
+		INSERT INTO data_db.his_data ( dev_id, d_id, v_name, unit, value, time ) VALUES ( gid1, did, @vname, @my_unit, val, t );
+	END IF;
+	
+	IF @amass=99 THEN
+		IF @st>0 THEN
+			SELECT unix_timestamp() INTO @now;
+			DELETE FROM data_db.his_data WHERE dev_id=gid1 AND d_id=did AND (@now-time)>=@st*3600 AND unit!=3;
+		END IF;
+					
+		INSERT INTO data_db.his_data ( dev_id, d_id, v_name, unit, value, time ) VALUES ( gid1, did, @vname, @my_unit, val, t );
+	END IF;
+	
+END F10
 |
 
 DROP PROCEDURE IF EXISTS save_alarm_info;
@@ -500,7 +573,23 @@ CREATE PROCEDURE save_file( IN in_dev_id VARCHAR(32) CHARACTER SET utf8, IN in_d
 F14:BEGIN
 
 	UPDATE data_db.real_data SET time=f_time, bin_d=f_path WHERE dev_id=in_dev_id AND d_id=in_d_id;
-	UPDATE dev_db.dev_table SET state='unknown' WHERE guid1=in_dev_id;
+	IF ROW_COUNT() > 0 THEN
+		UPDATE dev_db.dev_table SET state='running' WHERE guid1=in_dev_id;
+		LEAVE F14;
+	END IF;
+	
+	SELECT d_t, s_t, v_name, utid INTO @amass, @st, @vname, @utid FROM data_db.dev_data_unit WHERE dev_id=in_dev_id AND d_id=in_d_id LIMIT 1;
+	IF FOUND_ROWS()<= 0 THEN
+		LEAVE F14;
+	END IF;
+	
+	SELECT unit INTO @my_unit FROM data_db.unit_table WHERE id=@utid LIMIT 1;
+	IF FOUND_ROWS()<= 0 THEN
+		LEAVE F14;
+	END IF;
+	
+	INSERT INTO data_db.real_data ( dev_id, d_id, v_name, unit, bin_d, time ) VALUES ( in_dev_id, in_d_id, @vname, @my_unit, f_path, f_time );
+	UPDATE dev_db.dev_table SET state='running' WHERE guid1=in_dev_id;
 	
 END F14
 |
@@ -512,7 +601,7 @@ DROP PROCEDURE IF EXISTS add_alarm;
 CREATE PROCEDURE add_alarm( IN in_dev_id VARCHAR(32) CHARACTER SET utf8, IN in_d_id INT, IN in_v DOUBLE, IN f_time DOUBLE )
 F15:BEGIN
 
-	SELECT @my_thr:=thr, @my_m:=method, @my_last_t:=last_t FROM data_db.alarm WHERE dev_id=in_dev_id AND d_id=in_d_id;
+	SELECT thr, method, last_t INTO @my_thr, @my_m, @my_last_t FROM data_db.alarm WHERE dev_id=in_dev_id AND d_id=in_d_id LIMIT 1;
 	IF FOUND_ROWS()<= 0 THEN
 		LEAVE F15;
 	END IF;
@@ -560,22 +649,22 @@ F15:BEGIN
 	END IF;
 	
 	IF @if_alerm=1 THEN
-		SELECT @dev_name:=name, @user:=owner, @tz:=timezone FROM dev_db.dev_table WHERE guid1=in_dev_id;
+		SELECT name, owner, timezone INTO @dev_name, @user, @tz FROM dev_db.dev_table WHERE guid1=in_dev_id LIMIT 1;
 		IF FOUND_ROWS()<= 0 THEN
 			LEAVE F15;
 		END IF;
 		
-		SELECT @my_p:=phone FROM user_db.user_table WHERE uid=@user;
+		SELECT phone INTO @my_p FROM user_db.user_table WHERE uid=@user LIMIT 1;
 		IF FOUND_ROWS()<= 0 THEN
 			LEAVE F15;
 		END IF;
 		
-		SELECT @my_d_remark:=remark, @unit_id=utid FROM data_db.dev_data_unit WHERE d_id=in_d_id AND dev_id=in_dev_id;
+		SELECT remark, utid INTO @my_d_remark, @unit_id FROM data_db.dev_data_unit WHERE d_id=in_d_id AND dev_id=in_dev_id LIMIT 1;
 		IF FOUND_ROWS()<= 0 THEN
 			LEAVE F15;
 		END IF;
 
-		SELECT @my_unit:=unit FROM data_db.unit_table WHERE id=@unit_id;
+		SELECT unit INTO @my_unit FROM data_db.unit_table WHERE id=@unit_id LIMIT 1;
 		
 		IF f_time-@my_last_t<=1800 THEN
 			LEAVE F15;

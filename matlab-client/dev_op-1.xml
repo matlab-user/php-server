@@ -1,0 +1,19 @@
+<funs>
+	<f>
+		<id>1</id>
+		<n>op_name</n>
+		<r>op_remark</r>
+		
+		<p>
+			<n>p1_name</n>
+			<r>p1_remark</r>	
+			<u>p1_unit</u>
+		</p>
+		
+		<p>
+			<n>p2_name</n>
+			<r>p2_remark</r>	
+			<u>p2_unit</u>
+		</p>
+	</f>
+</funs>

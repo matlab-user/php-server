@@ -295,7 +295,7 @@
 	Function get_file_data( $file_d ) {
 		$res = '';
 		$pos = strpos( $file_d, "\r" );
-		$res = substr( $file_d, $pos );
+		$res = substr( $file_d, $pos+1 );
 		return $res;
 	}
 	

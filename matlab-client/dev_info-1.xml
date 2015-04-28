@@ -2,9 +2,9 @@
 	<n>dev_name</n>
 	<m>dev_model</m>
 	<c>maker</c>
-	<tz>timezone</tz>
-	<lo>lo</lo>
-	<la>la</la>
+	<tz>8</tz>
+	<lo>93.7</lo>
+	<la>90.5</la>
 	<h>height</h>
 	
 	<d>
@@ -22,6 +22,15 @@
 		<rem>data2_remark</rem>  		
 		<ty>8</ty>					
 		<unit>unit</unit>			
+		<st>1</st>					
+	</d>
+    
+    <d>
+		<id>3</id>   				
+		<n>data3</n>				
+		<rem>data3_remark</rem>  		
+		<ty>8</ty>					
+		<unit>file/image</unit>			
 		<st>1</st>					
 	</d>
 </dev>

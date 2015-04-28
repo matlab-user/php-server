@@ -4,3 +4,5 @@ source add_dev.sql;
 
 source sway_new_test_data.sql;
 source add_demo.sql;
+
+source add_example_dev.sql;

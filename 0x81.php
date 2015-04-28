@@ -11,10 +11,10 @@
 	$mysql_pass = $config->pass;
 	
 	// $config->upload_path 必须以 / 结尾
-	mkdirs( $config->upload_path );
+	mkdirs( dirname(dirname(__FILE__)).'/'.$config->upload_path );
 	
 	$raw_post_data = file_get_contents( 'php://input' );
-	error_log( date("Y-m-d H:i:s")."\t".$raw_post_data."\r\n", 3, '/tmp/wang_0x81.log' );
+	error_log( date("Y-m-d H:i:s")."\t".$raw_post_data."\r\n", 3, '/tmp/php_server_0x81.log' );
 	
 	$ps = decode_file_data( $raw_post_data );			// 随文件传来的参数
 	
@@ -40,7 +40,7 @@
 	// 以后须增加 I1 参数的合法性验证
 		
 	$str = date("Y-m-d H:i:s")."\t".$_POST['TIME']."\t".$_POST['T']."\t".$_POST['I1']."\t".$_POST['F'].$_POST['L']."\r\n";
-	error_log( $str, 3, '/tmp/wang_0x81.log' );
+	error_log( $str, 3, '/tmp/php_server_0x81.log' );
 	
 	switch( $_POST['T'] ) {
 		
@@ -48,15 +48,14 @@
 		case 'file':
 
 			$f_d = get_file_data( $raw_post_data );				// 获取文件数据
-								
+			$file_path = dirname(dirname(__FILE__)).'/'.$config->upload_path.$_POST['F'];	
+			
 			switch( $_POST['S'] ) {
 				case '2':			// 追加方式
-					$file_path = $config->upload_path.$_POST['F'];
 					$fid = fopen( $file_path, 'a+' );
 					break;
 					
 				default:
-					$file_path = $config->upload_path.$_POST['F'];
 					$fid = fopen( $file_path, 'w+' );
 					break;
 			}
@@ -65,7 +64,7 @@
 			
 			// 写入数据库		
 			$con = touch_mysql();
-			$query_str = "CALL save_file( '".$_POST['I1']."',".$_POST['ID'].",'".$file_path."',".$_POST['TIME']." )";
+			$query_str = "CALL save_file( '".$_POST['I1']."',".$_POST['ID'].",'".'/'.$config->upload_path.$_POST['F']."',".$_POST['TIME']." )";
 			echo $query_str."\n";
 			mysql_unbuffered_query( $query_str, $con );
 			mysql_close( $con );

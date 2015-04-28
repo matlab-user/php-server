@@ -19,7 +19,7 @@
 	mkdirs( $config->upload_path );
 	
 	$raw_post_data = file_get_contents( 'php://input' );
-	error_log( date("Y-m-d H:i:s")."\t".$raw_post_data."\r\n", 3, '/tmp/wang.log' );
+	error_log( date("Y-m-d H:i:s")."\t".$raw_post_data."\r\n", 3, '/tmp/php_server_0x82.log' );
 	
 /*
 	$_POST['TIME'] = '1234,+1';
@@ -49,8 +49,11 @@
 		$_POST['T'] = 'data';
 		
 	$str = date("Y-m-d H:i:s")."\t".$_POST['TIME']."\t".$_POST['T']."\t".$_POST['I1']."\t".$_POST['W']."\r\n";
-	error_log( $str, 3, '/tmp/wang.log' );
+	error_log( $str, 3, '/tmp/php_server_0x82.log' );
 	
+	if( $_POST['TIME']=='0')
+		$_POST['TIME'] = time();
+		
 	switch( $_POST['T'] ) {
 		case 'data':
 			if( !isset($_POST['TIME'] ) )
@@ -64,12 +67,12 @@
 				foreach( $d as $v ) {
 					$dev_id = $v->dev_id;
 					foreach( $v->data as $value ) {
-						//$query_str = "CALL user_db.save_val_data( '".$dev_id."',".$value->id.",".$value->value.",".$value->time." )";
-						$query_str = sprintf( "SELECT d_t, v_name, utid FROM data_db.dev_data_unit WHERE dev_id='%s' AND d_id=%s", $dev_id, $value->id );
-						error_log( $query_str."\r\n", 3, '/tmp/wang.log' );
+						$query_str = "CALL user_db.save_val_data( '".$dev_id."',".$value->id.",".$value->value.",".$value->time." )";
+						//$query_str = sprintf( "SELECT d_t, v_name, utid FROM data_db.dev_data_unit WHERE dev_id='%s' AND d_id=%s", $dev_id, $value->id );
+						error_log( $query_str."\r\n", 3, '/tmp/php_server_0x82.log' );
 						$con = touch_mysql();
 						$res = mysql_query( $query_str, $con );
-						if( !$res ) {
+/*						if( !$res ) {
 							error_log( "mysql query results is empty!\r\n", 3, '/tmp/wang.log' );
 							mysql_close( $con );
 							exit;
@@ -100,6 +103,7 @@
 							$query_str = sprintf( "UPDATE data_db.real_data SET value=%s, v_name='%s', time=%f WHERE dev_id='%s' AND d_id=%s", $value->value, $vname, $value->time, $dev_id, $value->id );
 							mysql_query( $query_str, $con );							
 						}
+*/
 						mysql_close( $con );
 					}
 				}
@@ -205,7 +209,7 @@
 		
 		$con = mysql_connect( 'localhost', $mysql_user, $mysql_pass );
 		if( !$con ) {
-			error_log( "mysql touch failed--".mysql_error()."\r\n", 3, '/tmp/wang.log' );
+			error_log( "mysql touch failed--".mysql_error()."\r\n", 3, '/tmp/php_server_0x82.log' );
 			die( 'Could not connect: ' . mysql_error() );
 		}
 		
