@@ -14,7 +14,7 @@
 	mkdirs( dirname(dirname(__FILE__)).'/'.$config->upload_path );
 	
 	$raw_post_data = file_get_contents( 'php://input' );
-	error_log( date("Y-m-d H:i:s")."\t".$raw_post_data."\r\n", 3, '/tmp/php_server_0x81.log' );
+	//error_log( date("Y-m-d H:i:s")."\t".$raw_post_data."\r\n", 3, '/tmp/php_server_0x81.log' );
 	
 	$ps = decode_file_data( $raw_post_data );			// 随文件传来的参数
 	
@@ -22,9 +22,9 @@
 		exit;
 	
 	if( empty($ps->f) )
-		$_POST['F'] = $_POST['I1'].'-'.time().'.jpg';
+		$_POST['F'] = $ps->i1.'-'.time().'-'.mt_rand().'.jpg';
 	else
-		$_POST['F'] = $ps->f;
+		$_POST['F'] = $ps->i1.'-'.time().'-'.$ps->f;
 	
 	if( empty($ps->s) )
 		$_POST['S'] = 0;
@@ -39,7 +39,7 @@
 		
 	// 以后须增加 I1 参数的合法性验证
 		
-	$str = date("Y-m-d H:i:s")."\t".$_POST['TIME']."\t".$_POST['T']."\t".$_POST['I1']."\t".$_POST['F'].$_POST['L']."\r\n";
+	$str = date("Y-m-d H:i:s")."\t".$_POST['TIME']."\t".$_POST['T']."\t".$_POST['I1']."\t".$_POST['F']."\t".$_POST['L']."\r\n";
 	error_log( $str, 3, '/tmp/php_server_0x81.log' );
 	
 	switch( $_POST['T'] ) {
@@ -65,11 +65,18 @@
 			// 写入数据库		
 			$con = touch_mysql();
 			$query_str = "CALL save_file( '".$_POST['I1']."',".$_POST['ID'].",'".'/'.$config->upload_path.$_POST['F']."',".$_POST['TIME']." )";
-			echo $query_str."\n";
 			mysql_unbuffered_query( $query_str, $con );
 			mysql_close( $con );
+		
+			// 以 25% 的比例，清除超时文件
+			$sig = mt_rand( 1, 5 );
+			if( $sig==1 ) {
+				$cmd = 'nohup php timeout_cleaner.php '.$_POST['I1'].' '.$_POST['ID'].' > /dev/null 2>&1 &';
+				error_log( "$cmd----------".$_POST['I1']."\r\n", 3, '/tmp/php_server_0x81.log' );
+				exec( $cmd );
+			}
 			break;
-			
+						
 		default:
 			break;
 	}
