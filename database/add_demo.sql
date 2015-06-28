@@ -17,7 +17,7 @@ INSERT INTO data_db.dev_data_unit ( d_id, dev_id, d_t, utid, v_name, remark) SEL
 INSERT INTO data_db.dev_data_unit ( d_id, dev_id, d_t, utid, v_name, remark) SELECT 2, @g1, 0, id, 'CO2浓度', '大气二氧化碳浓度' FROM data_db.unit_table WHERE unit='ppm';
 
 /*	state 类型数据1个	*/
-INSERT INTO data_db.dev_data_unit ( d_id, dev_id, d_t, utid, v_name, remark) SELECT 5, @g1, 0, id, '设备状态', '[ { "0":"传感器1状态","v":["正常","故障"] },{"3":"传感器2状态","v":["正常","故障"]},{"10":"电源状态","v":["电网","电池"]},{"15":电机1状态,"v":["停止","运转"]}]' FROM data_db.unit_table WHERE unit='state';
+INSERT INTO data_db.dev_data_unit ( d_id, dev_id, d_t, utid, v_name, remark) SELECT 5, @g1, 0, id, '设备状态', '[ { "0":"传感器1状态","v":["正常","故障"] },{"3":"传感器2状态","v":["正常","故障"]},{"10":"电源状态","v":["电网","电池"]},{"15":"电机1状态","v":["停止","运转"]} ]' FROM data_db.unit_table WHERE unit='state';
 
 /*   数据非累积型 1个   */
 INSERT INTO data_db.dev_data_unit ( d_id, dev_id, d_t, utid, v_name, remark) SELECT 3, @g1, 1, id, '温度', '大气温度' FROM data_db.unit_table WHERE unit='<sup>。</sup>C';
