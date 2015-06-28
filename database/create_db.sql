@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS data_db.dev_data_unit (
 	`utid` BIGINT NOT NULL,
 	`type` ENUM('1','2','3','4','5','6','7','8') NOT NULL DEFAULT '7',
 	`d_t` INT NOT NULL DEFAULT 1,								/* ss==0 累积数据; ss==1 不累积数据; */
-	`remark` VARCHAR(60) DEFAULT '',
+	`remark` VARCHAR(520) DEFAULT '',
 	`s_t` BIGINT DEFAULT 0,
 	`v_name` VARCHAR(60) DEFAULT '',
 	PRIMARY KEY ( `dev_id`,`d_id` )
